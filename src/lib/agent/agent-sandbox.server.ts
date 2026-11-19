@@ -31,8 +31,8 @@ function powSecret(): string {
 export async function issueChallenge() {
   const { issuePowChallenge } = await import("@/lib/pow/pow.server");
   const { powSpec } = await import("./agent-protocol");
-  const { send_as: _headers, ...challenge } = await issuePowChallenge("sandbox");
-  return { ...challenge, send_as: { body: { challenge: "<challenge>", solution: "<solution>" } }, solvers: powSpec().solvers };
+  // Registration sends the solution in the JSON body, not in the heavy-operation headers.
+  return { ...(await issuePowChallenge("sandbox")), send_as: { body: { challenge: "<challenge>", solution: "<solution>" } }, solvers: powSpec().solvers };
 }
 
 /**

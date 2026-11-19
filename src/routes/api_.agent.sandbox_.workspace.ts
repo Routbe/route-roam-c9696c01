@@ -28,6 +28,7 @@ export const Route = createFileRoute("/api_/agent/sandbox_/workspace")({
         try {
           const { provisionSandboxWorkspace, claimQrSvg } = await import("@/lib/agent/agent-sandbox.server");
           const { publicOrigin } = await import("@/lib/agent/agent-auth.server");
+          const { SANDBOX_TTL_HOURS } = await import("@/lib/agent/agent-protocol");
           const ws = await provisionSandboxWorkspace(ctx, parsed.data);
           const url = claimUrl(publicOrigin(request), ws.claimToken);
           const svg = await claimQrSvg(url);
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/api_/agent/sandbox_/workspace")({
                 "In ROUT: Profile → Personal → the gear icon next to “New workspace” → Claim workspace.",
                 "Scan the QR code or type the claim code, then sign in and confirm.",
               ],
-              note: "Shown once. Single-use; expires with the sandbox (24 h). ROUT sends no e-mail. Nothing is public until claimed.",
+              note: `Shown once. Single-use; expires with the sandbox (${SANDBOX_TTL_HOURS} h). ROUT sends no e-mail. Nothing is public until claimed.`,
             },
             201,
           );
