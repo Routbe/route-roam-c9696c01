@@ -3,16 +3,14 @@ import {
   generateClaimCode,
   generateSandboxKey,
   isSandboxKey,
-  leadingZeroBits,
   normalizeClaimCode,
   parseClaimInput,
   sandboxAppsInput,
   sandboxProfileInput,
   sandboxRegisterInput,
   sha256Hex,
-  signChallenge,
-  verifyChallenge,
 } from "./agent-sandbox";
+import { leadingZeroBits, signPowChallenge, verifyPow } from "@/lib/pow/pow";
 
 const rnd = (n: number) => crypto.getRandomValues(new Uint8Array(n));
 const SECRET = "x".repeat(40);
@@ -52,23 +50,18 @@ describe("sandbox key", () => {
   });
 });
 
-describe("proof of work", () => {
+describe("proof of work (sandbox scope)", () => {
   it("counts leading zero bits", () => {
     expect(leadingZeroBits("0f")).toBe(4);
     expect(leadingZeroBits("01")).toBe(7);
     expect(leadingZeroBits("80")).toBe(0);
   });
-  it("accepts a real solution and rejects tampering, expiry and weak work", async () => {
+  it("a sandbox challenge never unlocks another operation", async () => {
     const now = 1_000_000;
-    const ch = await signChallenge(SECRET, now, rnd(16), 8);
-    let n = 0;
-    while (leadingZeroBits(await sha256Hex(`${ch}:${n.toString(36)}`)) < 8) n++;
-    const sol = n.toString(36);
-    expect(await verifyChallenge(SECRET, ch, sol, now)).toEqual({ ok: true });
-    expect((await verifyChallenge("y".repeat(40), ch, sol, now)).ok).toBe(false);
-    expect(await verifyChallenge(SECRET, ch, sol, now + 601)).toEqual({ ok: false, reason: "expired" });
-    const tampered = ch.replace(".8.", ".0.");
-    expect((await verifyChallenge(SECRET, tampered, sol, now)).ok).toBe(false);
+    const ch = await signPowChallenge(SECRET, "sandbox", now, rnd(16));
+    expect(ch.startsWith("v2.sandbox.")).toBe(true);
+    expect(await verifyPow(SECRET, "workspace", ch, "0", now)).toEqual({ ok: false, reason: "wrong_scope" });
+    expect(await verifyPow(SECRET, "sandbox", ch, "0", now + 601)).toEqual({ ok: false, reason: "expired" });
   });
 });
 
