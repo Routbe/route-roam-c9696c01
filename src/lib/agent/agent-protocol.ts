@@ -80,7 +80,7 @@ export const SANDBOX_LIFECYCLE = {
     { from: "challenged", to: "sandbox_active", by: "POST /api/agent/sandbox with a valid solution (each challenge registers at most one sandbox)" },
     { from: "sandbox_active", to: "workspace_staged", by: "POST /api/agent/sandbox/workspace with a fresh scope=workspace proof-of-work" },
     { from: "workspace_staged", to: "claimed", by: "a signed-in human opens the claim link or enters the claim code" },
-    { from: "sandbox_active|workspace_staged", to: "expired_and_purged", by: `${SANDBOX_TTL_HOURS} hours after registration` },
+    { from: "sandbox_active|workspace_staged", to: "expired_and_purged", by: `expires ${SANDBOX_TTL_HOURS} hours after registration; deleted by the next registration or the purge job` },
   ],
   invariants: [
     { id: "claim_once", rule: "A workspace binds exactly one owner: the claim row is locked (SELECT … FOR UPDATE) and a second claim raises claim_used." },

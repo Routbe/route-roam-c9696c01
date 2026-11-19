@@ -5,13 +5,15 @@
  * (stateless, HMAC-signed by the server). Work: find a `solution`
  * ([0-9A-Za-z]{1,64}) such that sha256(challenge + ":" + solution) starts with
  * `bits` zero bits. Each challenge is single-use (replays are refused server-side).
+ * One format for every operation: `sandbox` (registration, replay-checked by
+ * agent_sandboxes.pow_hash), `vault` and `workspace` (rout_pow_spend).
  */
 const enc = new TextEncoder();
 
-export const POW_SCOPES = ["vault", "workspace"] as const;
+export const POW_SCOPES = ["sandbox", "vault", "workspace"] as const;
 export type PowScope = (typeof POW_SCOPES)[number];
 /** ~1M hashes on average: a second or two for one agent, expensive at spam scale. */
-export const POW_BITS: Record<PowScope, number> = { vault: 20, workspace: 20 };
+export const POW_BITS: Record<PowScope, number> = { sandbox: 20, vault: 20, workspace: 20 };
 export const POW_CHALLENGE_TTL_S = 10 * 60;
 export const POW_CHALLENGE_HEADER = "x-rout-pow-challenge";
 export const POW_SOLUTION_HEADER = "x-rout-pow-solution";
