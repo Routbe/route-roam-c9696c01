@@ -11,30 +11,30 @@
     {
       "capability": "schema",
       "source": "Neon Postgres, db/*.sql migrations (~272 tables)",
-      "outcome": "keep on Neon (user decision pending, Neon in use)",
-      "status": "pending_decision",
-      "next_action": "user answers Neon vs Lovable Cloud"
+      "outcome": "keep on Neon (user confirmed 2026-11-19)",
+      "status": "pending",
+      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
     },
     {
       "capability": "records",
       "source": "Neon",
-      "outcome": "stay in Neon if kept; otherwise CSV/JSON export needed",
-      "status": "pending_decision",
-      "next_action": "depends on database decision"
+      "outcome": "keep on Neon (user confirmed 2026-11-19)",
+      "status": "pending",
+      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
     },
     {
       "capability": "auth identities",
       "source": "Better Auth passkeys + OPAQUE in Neon",
-      "outcome": "keep with Neon",
-      "status": "pending_decision",
-      "next_action": "depends on database decision"
+      "outcome": "keep on Neon (user confirmed 2026-11-19)",
+      "status": "pending",
+      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
     },
     {
       "capability": "authorization",
       "source": "Postgres RLS + rout_app role",
-      "outcome": "unchanged in Neon",
-      "status": "pending_decision",
-      "next_action": "depends on database decision"
+      "outcome": "keep on Neon (user confirmed 2026-11-19)",
+      "status": "pending",
+      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
     },
     {
       "capability": "file storage",
