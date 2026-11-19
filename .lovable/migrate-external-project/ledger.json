@@ -1,5 +1,5 @@
 {
-  "source": "github:Routbe/route-roam-dd694b0a@main",
+  "source": "github:Routbe/route-roam-31160c5a@main",
   "capabilities": [
     {
       "capability": "code",
@@ -11,30 +11,30 @@
     {
       "capability": "schema",
       "source": "Neon Postgres, db/*.sql migrations (~272 tables)",
-      "outcome": "keep on Neon (user confirmed 2026-11-19)",
-      "status": "pending",
-      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
+      "outcome": "keep on Neon (user decision pending, Neon in use)",
+      "status": "pending_decision",
+      "next_action": "user answers Neon vs Lovable Cloud"
     },
     {
       "capability": "records",
       "source": "Neon",
-      "outcome": "keep on Neon (user confirmed 2026-11-19)",
-      "status": "pending",
-      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
+      "outcome": "stay in Neon if kept; otherwise CSV/JSON export needed",
+      "status": "pending_decision",
+      "next_action": "depends on database decision"
     },
     {
       "capability": "auth identities",
       "source": "Better Auth passkeys + OPAQUE in Neon",
-      "outcome": "keep on Neon (user confirmed 2026-11-19)",
-      "status": "pending",
-      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
+      "outcome": "keep with Neon",
+      "status": "pending_decision",
+      "next_action": "depends on database decision"
     },
     {
       "capability": "authorization",
       "source": "Postgres RLS + rout_app role",
-      "outcome": "keep on Neon (user confirmed 2026-11-19)",
-      "status": "pending",
-      "next_action": "connect DATABASE_URL and BETTER_AUTH_SECRET via secure form, then verify sign-in"
+      "outcome": "unchanged in Neon",
+      "status": "pending_decision",
+      "next_action": "depends on database decision"
     },
     {
       "capability": "file storage",
