@@ -30,9 +30,8 @@ function powSecret(): string {
 /** The registration challenge: the same scoped v2 proof-of-work as every other agent operation (scope "sandbox"). */
 export async function issueChallenge() {
   const { issuePowChallenge } = await import("@/lib/pow/pow.server");
-  const { powSpec } = await import("./agent-protocol");
   // Registration sends the solution in the JSON body, not in the heavy-operation headers.
-  return { ...(await issuePowChallenge("sandbox")), send_as: { body: { challenge: "<challenge>", solution: "<solution>" } }, solvers: powSpec().solvers };
+  return { ...(await issuePowChallenge("sandbox")), send_as: { body: { challenge: "<challenge>", solution: "<solution>" } } };
 }
 
 /**

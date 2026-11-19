@@ -17,6 +17,7 @@ function powSecret(): string {
 }
 
 export async function issuePowChallenge(scope: PowScope) {
+  const { POW_SOLVERS } = await import("@/lib/agent/agent-protocol");
   const challenge = await signPowChallenge(powSecret(), scope, Math.floor(Date.now() / 1000), crypto.getRandomValues(new Uint8Array(16)));
   return {
     challenge,
@@ -26,6 +27,7 @@ export async function issuePowChallenge(scope: PowScope) {
     algorithm: "sha256(challenge + ':' + solution) must start with difficulty_bits zero bits; solution matches [0-9A-Za-z]{1,64}",
     send_as: { [POW_CHALLENGE_HEADER]: "<challenge>", [POW_SOLUTION_HEADER]: "<solution>" },
     single_use: true,
+    solvers: { usage: "Set CHALLENGE and BITS (= difficulty_bits), run one line, use the printed line as the solution.", ...POW_SOLVERS },
   };
 }
 
