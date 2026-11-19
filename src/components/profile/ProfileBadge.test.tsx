@@ -18,17 +18,17 @@ function open(name: string) {
 describe("verification card behind the profile marks", () => {
   it("blue mark verified by the ROUT team shows name, country, month and the team text", () => {
     render(<ProfileBadge type="verified" method="team" legalName="Jona Delplanche" country="be" verifiedAt="2026-10-10T08:16:00Z" size="sm" />);
-    const card = open("Officieel geverifieerd lid");
-    expect(card.textContent).toContain("Officieel geverifieerd lid");
+    const card = open("KYC Attested — identiteit bevestigd");
+    expect(card.textContent).toContain("KYC Attested — identiteit bevestigd");
     expect(card.textContent).toContain("Jona Delplanche · BE");
     expect(card.textContent).toContain("Geverifieerd in oktober 2026");
     expect(card.textContent).toContain("Geverifieerd door het ROUT-team");
-    expect(card.textContent).toContain("Officieel geverifieerd lid. Identiteit en accountstatus zijn succesvol gevalideerd via ROUT.");
+    expect(card.textContent).toContain("Officiële identiteitscontrole (KYC) via een identiteitsdocument.");
   });
 
   it("blue mark from Didit says it was validated through Didit", () => {
     render(<ProfileBadge type="verified" method="didit" legalName="Anna Peeters" country="BE" verifiedAt="2026-11-02T10:00:00Z" size="sm" />);
-    const card = open("Officieel geverifieerd lid");
+    const card = open("KYC Attested — identiteit bevestigd");
     expect(card.textContent).toContain("Anna Peeters · BE");
     expect(card.textContent).toContain("Geverifieerd in november 2026");
     expect(card.textContent).toContain("Geverifieerd via ROUT met Didit");
@@ -55,7 +55,7 @@ describe("verification card behind the profile marks", () => {
 describe("blue-mark card: keyboard, animation and signature", () => {
   it("trigger reports aria-expanded, has a 44 px tap target and Escape closes the card", async () => {
     render(<ProfileBadge type="verified" method="team" legalName="Jona Delplanche" country="BE" verifiedAt="2026-10-10T08:16:00Z" size="sm" />);
-    const trigger = screen.getByRole("button", { name: "Officieel geverifieerd lid" });
+    const trigger = screen.getByRole("button", { name: "KYC Attested — identiteit bevestigd" });
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(trigger.className).toContain("tap-badge");
     expect(trigger.className).toContain("focus-visible:ring-2");
@@ -72,7 +72,7 @@ describe("blue-mark card: keyboard, animation and signature", () => {
   it("shows the Ed25519 line once the signature checks out", async () => {
     verify.mockResolvedValueOnce("valid");
     render(<ProfileBadge type="verified" method="team" legalName="Jona Delplanche" country="BE" verifiedAt="2026-10-10T08:16:00Z" attestation={ATT} handle="jdelplanche" size="sm" />);
-    const card = open("Officieel geverifieerd lid");
+    const card = open("KYC Attested — identiteit bevestigd");
     await waitFor(() => expect(card.textContent).toContain("Enclave-handtekening valide • Ed25519"));
     expect(verify).toHaveBeenCalledWith(ATT, expect.objectContaining({ handle: "jdelplanche", name: "Jona Delplanche", country: "BE" }));
   });
@@ -80,14 +80,14 @@ describe("blue-mark card: keyboard, animation and signature", () => {
   it("says so when the signature does not match", async () => {
     verify.mockResolvedValueOnce("invalid");
     render(<ProfileBadge type="verified" method="didit" legalName="Jona D." country="BE" verifiedAt="2026-10-10T08:16:00Z" attestation={ATT} handle="jdelplanche" size="sm" />);
-    const card = open("Officieel geverifieerd lid");
+    const card = open("KYC Attested — identiteit bevestigd");
     await waitFor(() => expect(card.textContent).toContain("Handtekening klopt niet"));
     expect(card.textContent).not.toContain("handtekening valide");
   });
 
   it("a minor's masked name is shown as given: first name and initial", () => {
     render(<ProfileBadge type="verified" method="didit" legalName="Jona D." country="BE" verifiedAt="2026-10-10T08:16:00Z" size="sm" />);
-    const card = open("Officieel geverifieerd lid");
+    const card = open("KYC Attested — identiteit bevestigd");
     expect(card.textContent).toContain("Jona D. · BE");
     expect(card.textContent).not.toContain("Delplanche");
   });
