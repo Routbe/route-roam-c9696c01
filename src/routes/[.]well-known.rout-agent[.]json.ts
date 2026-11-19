@@ -24,7 +24,7 @@ export const Route = createFileRoute("/.well-known/rout-agent.json")({
             { step: 6, method: "GET", url: `${o}/api/agent/sandbox/workspace`, returns: "draft, apps" },
             { step: 7, action: "Give the human the claim_url, the QR code or the claim_code. They claim via Profile → Personal → gear next to 'New workspace' → Claim workspace." },
           ],
-          limits: { sandbox_ttl_hours: 48, sandboxes_per_network_per_day: 5, workspaces_per_sandbox: 1, apps_per_workspace: 3 },
+          limits: (await import("@/lib/agent/agent-protocol")).sandboxLimits(),
         };
         return new Response(JSON.stringify(body, null, 2), {
           headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=3600", "access-control-allow-origin": "*" },

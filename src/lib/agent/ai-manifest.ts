@@ -83,7 +83,7 @@ export function aiManifest(origin: string) {
     },
     quickstart: [
       { step: 1, call: `GET ${origin}/api/agent/sandbox`, returns: "challenge, difficulty_bits" },
-      { step: 2, call: `POST ${origin}/api/agent/sandbox`, body: { challenge: "…", solution: "sha256(challenge+':'+solution) has difficulty_bits leading zero bits", agent_name: "…" }, returns: "sandbox_key (rsk_…, 48 h)" },
+      { step: 2, call: `POST ${origin}/api/agent/sandbox`, body: { challenge: "…", solution: "sha256(challenge+':'+solution) has difficulty_bits leading zero bits", agent_name: "…" }, returns: "sandbox_key (rsk_…, 24 h)" },
       { step: 3, call: `GET ${origin}/api/v1/pow/challenge?scope=vault`, returns: "challenge, difficulty_bits (single use, 10 min). Solve it like step 2." },
       { step: 3.5, call: `POST ${origin}/api/v1/agent/vault`, headers: { authorization: "Bearer rsk_…", [POW_CHALLENGE_HEADER]: "<challenge>", [POW_SOLUTION_HEADER]: "<solution>" }, body: { config: { name: "My workspace", canvas: { theme: { background: "#FFFFFF", text: "#111111" } } } }, returns: "vault_id, ephemeral_secret, handoff_code, claim_url, claim_qr_svg" },
       { step: 4, action: "Give the human the claim_url, the QR code or the handoff_code. They open ROUT → gear icon next to 'New workspace' → Claim workspace." },
