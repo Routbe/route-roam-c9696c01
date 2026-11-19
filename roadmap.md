@@ -374,7 +374,7 @@
 - [x] 0287 + 0288 live, CODE_SCHEMA_LEVEL 0288, tests volgen de vrijgegeven bestanden
 - [ ] Wachtwoord van neondb_owner in Neon vernieuwen (stond in de chat) — eigenaar
 - [ ] Productie opnieuw uitrollen zodat de health-probe 0288 meldt — eigenaar
-- [ ] ROUT_VAULT_KEK op de eigen server, daarna `bun scripts/a1-backfill.ts` (proef) en `--apply` — eigenaar
+- [x] A1-backfill uitgevoerd (2026-11-19 22:2x UTC, GO eigenaar): 3 velden in 3 profielen verzegeld, 0 rijen met platte tekst over, alle 3 openen correct onder ROUT_VAULT_KEK
 - [x] Merklogo's in de verificatiehub: lokaal opgeslagen (public/logos + inline Didit/W Identity), 0 externe verzoeken, `<ProviderLogo>` met Building2-terugval (eID / eIDAS heeft geen eigen merk)
 - [x] Time-outbewaking 6000 ms in requireAuth (`warming_up`, Studio probeert één keer opnieuw) — eigenaar koos 6000 ms i.p.v. 3000 ms
 - [x] Sessies 90 dagen, glijdend na 24 uur (src/lib/auth/session-policy.ts)
@@ -507,3 +507,8 @@
 - [x] db/0296: account purge clears relay deliveries + identity history via definer helper (replay test green)
 - [x] Owner: apply db/0294, 0295, 0296 on Neon (applied 2026-11-19 21:24-21:25 UTC on owner GO; history check 0 findings, definer check 0 findings)
 - [x] Blue mark rosette, clickable crown, page buttons removed, Studio preview 1:1 marks
+
+## Voorbeeld met productiesleutels (2026-11-19, keuze eigenaar)
+- [x] Database (rout_app, geen superuser/RLS-omzeiling), aanmeldgeheim, Scaleway (3 buckets) en ROUT_VAULT_KEK ingesteld en gecontroleerd
+- [ ] Inloggen op het voorbeeldadres: bestaande passkeys horen bij rout.be en werken hier niet — eigenaar beslist hoe (bv. een extra passkey voor het voorbeeld)
+- [ ] Overige sleutels per functie (mail, sms, betalingen, wallet, sociale logins) pas opvragen wanneer een functie ze nodig heeft
