@@ -475,14 +475,14 @@
 - [ ] A: shared hybrid signer, Sign/Didit/identity attestations, /.well-known/rout-pq-keys.json, worker op pq.verify
 - [ ] B: OID4VCI issuer (metadata, pre-authorized code, token/nonce/credential), console tab
 - [ ] C: OID4VP verifier (request object, direct_post, verification), console tools
-- [ ] D: Token Status List (JWT, compressed), migration replay-tested, waits for GO
+- [x] D: Token Status List (JWT, compressed), migration replay-tested, live on Neon via 0294 (2026-11-19)
 
 ## EUDI Wallet / Post-Quantum overdracht (0294)
 - [x] 0294 PGlite-replay + rollout dry run groen
-- [ ] 0294 live op Neon (wacht op eigenaar: `bun scripts/migration-rollout.ts --apply db/0294_eudi_wallet.sql`)
+- [x] 0294 live op Neon (2026-11-19 21:24 UTC, GO eigenaar, rollout-batch via Neon-connector)
 - [x] NIST ACVP ML-DSA-65 fixture + hybride handtekeningtests
 - [x] OID4VCI / OID4VP / Status List / zeroization tests
-- [ ] HANDOVER-appendix bijwerken na groene suite (wacht: enclave.test.ts faalt op crypto.subtle in src/routes/sign.$requestId.tsx, bestaande code)
+- [x] HANDOVER-appendix bijwerken na groene suite (enclave.test.ts groen sinds sign.envelope_sha256)
 - [x] Verplichte DPoP (RFC 9449) op OID4VCI token + credential, 60 s jti-replaycache, metadata ES256/Ed25519
 - [x] Test: status-list-JWT verankerd aan gepubliceerde sleutel (kid)
 
@@ -497,13 +497,13 @@
 
 - [x] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
 - [x] DPoP: dual-layer jti replay (in-memory + db/0295 dpop_jti_replays via rout_dpop_jti_claim)
-- [ ] Owner: apply db/0294 then db/0295 on Neon with scripts/migration-rollout.ts (see HANDOVER appendix 2026-11-19); Neon is at 0293
+- [x] Owner: apply db/0294 then db/0295 on Neon (applied 2026-11-19 on owner GO; Neon at 0296)
 - [x] Full vitest run 2026-11-19: 3,895 passed, 9 skipped, 0 failed
 - [x] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
 - [x] Deleted preview test account lovable-signin-test-20261119@example.com (2026-11-19)
 - [x] Deleted the 17 older test accounts in Neon (2026-11-19)
-- [ ] Account purge cron fails on Neon: rout_app lacks SELECT/DELETE on oauth_email_deliveries + identity_link_events (owner decision: definer helper or grant)
+- [x] Account purge cron fails on Neon: rout_app lacks SELECT/DELETE on oauth_email_deliveries + identity_link_events (fixed by db/0296 definer helper, live 2026-11-19; first real purge run not yet observed)
 
 - [x] db/0296: account purge clears relay deliveries + identity history via definer helper (replay test green)
-- [ ] Owner: apply db/0294, 0295, 0296 on Neon with scripts/migration-rollout.ts (blocked: owner GO)
+- [x] Owner: apply db/0294, 0295, 0296 on Neon (applied 2026-11-19 21:24-21:25 UTC on owner GO; history check 0 findings, definer check 0 findings)
 - [x] Blue mark rosette, clickable crown, page buttons removed, Studio preview 1:1 marks
