@@ -23,7 +23,6 @@ import { ProfileIntegrations } from "@/components/profile/ProfileIntegrations";
 import { ProfileGuestbook } from "@/components/profile/ProfileGuestbook";
 import { QaStoryRing } from "@/components/qa/QaStoryRing";
 import { ProfileQuestions } from "@/components/profile/ProfileQuestions";
-import { TipJarButton } from "@/components/profile/TipJarButton";
 import { useWireframeMode, WireframeOverlay } from "@/components/profile/WireframeMode";
 import { cn } from "@/lib/utils";
 import {
@@ -635,7 +634,6 @@ export function ProfileView({
         {profile.username && prefs.lastfmPresence && <LastfmCard handle={profile.username} theme={t} />}
         {profile.username && <ProfileIntegrations handle={profile.username} theme={t} buttonStyle={styleFor("live")} exclude={liveProviders} />}
         {profile.username && usesSectionFallback(profile.blocks, "widget:youtube") && <ProfileYouTubeCard handle={profile.username} theme={t} cardStyle={styleFor("widget:youtube")} />}
-        {profile.username && <TipJarButton handle={profile.username} theme={t} />}
         <ProfilePassport handle={profile.username} theme={t} />
         {profile.username && <ConnectedApps handle={profile.username} />}
         {profile.username && !profile.blocks.some(b => b.kind === "event_list") && <ProfileEventList handle={profile.username} space={free ? "alias" : "root"} style={styleFor("event_list")} />}
