@@ -7,10 +7,9 @@ import {
   isSandboxKey,
   normalizeClaimCode,
   sha256Hex,
-  signChallenge,
-  verifyChallenge,
   type SandboxAppSpec,
 } from "./agent-sandbox";
+import { boundKeyHashInput } from "./sandbox-dpop";
 import { generateClaimToken, hashClaimToken } from "./agent-claims";
 import { seedWorkspaceStudio } from "@/lib/workspace-studio";
 
@@ -28,23 +27,31 @@ function powSecret(): string {
   return s;
 }
 
-export async function issueChallenge(): Promise<{ challenge: string; difficulty_bits: number; expires_in: number }> {
-  const { POW_DIFFICULTY_BITS, POW_TTL_S } = await import("./agent-sandbox");
-  const challenge = await signChallenge(powSecret(), Math.floor(Date.now() / 1000), rnd(16));
-  return { challenge, difficulty_bits: POW_DIFFICULTY_BITS, expires_in: POW_TTL_S };
+/** The registration challenge: the same scoped v2 proof-of-work as every other agent operation (scope "sandbox"). */
+export async function issueChallenge() {
+  const { issuePowChallenge } = await import("@/lib/pow/pow.server");
+  // Registration sends the solution in the JSON body, not in the heavy-operation headers.
+  return { ...(await issuePowChallenge("sandbox")), send_as: { body: { challenge: "<challenge>", solution: "<solution>" } } };
 }
 
-export async function registerSandbox(input: { challenge: string; solution: string; agentName: string; ip: string }) {
-  const check = await verifyChallenge(powSecret(), input.challenge, input.solution, Math.floor(Date.now() / 1000));
+/**
+ * `jkt` = RFC 7638 thumbprint of the agent's DPoP key when it registered with a
+ * proof: the key is then stored as SHA-256(key + "." + jkt) and only opens with
+ * a matching proof (sandbox-dpop.ts).
+ */
+export async function registerSandbox(input: { challenge: string; solution: string; agentName: string; ip: string; jkt?: string }) {
+  const { verifyPow } = await import("@/lib/pow/pow");
+  const check = await verifyPow(powSecret(), "sandbox", input.challenge, input.solution, Math.floor(Date.now() / 1000));
   if (!check.ok) throw new Error(`challenge_${check.reason}`);
   const key = generateSandboxKey(rnd);
   const { rateLimitKey } = await import("@/lib/qa/privacy-keys.server");
   const ipBucket = await rateLimitKey("agent-sandbox", input.ip);
+  const keyHash = await sha256Hex(input.jkt ? boundKeyHashInput(key, input.jkt) : key);
   const rows = (await sql`select sandbox_id, expires_at from public.rout_agent_sandbox_register(
-      ${await sha256Hex(key)}, ${await sha256Hex(input.challenge)}, ${ipBucket}, ${input.agentName})`) as Array<{ sandbox_id: string; expires_at: string }>;
+      ${keyHash}, ${await sha256Hex(input.challenge)}, ${ipBucket}, ${input.agentName})`) as Array<{ sandbox_id: string; expires_at: string }>;
   const row = rows[0];
   if (!row) throw new Error("register_failed");
-  return { sandboxKey: key, sandboxId: row.sandbox_id, expiresAt: row.expires_at };
+  return { sandboxKey: key, sandboxId: row.sandbox_id, expiresAt: row.expires_at, tokenType: input.jkt ? ("DPoP" as const) : ("Bearer" as const) };
 }
 
 export type SandboxContext = {
@@ -58,20 +65,36 @@ export type SandboxContext = {
   expiresAt: string;
 };
 
-/** Bearer `rsk_…` gate. Returns a structured error Response on failure. */
+/**
+ * Sandbox key gate: `Authorization: Bearer rsk_…`, or `Authorization: DPoP rsk_…`
+ * plus a DPoP proof for keys registered with one. Returns a structured error
+ * Response on failure.
+ */
 export async function authenticateSandbox(request: Request): Promise<SandboxContext | Response> {
   const { guardRequest } = await import("@/lib/api-guard.server");
   const limited = guardRequest(request, "agent-sandbox", 60, 60_000);
   if (limited) return agentError(429, "rate_limited", "Too many sandbox requests. Retry later.");
-  const token = /^Bearer\s+(.+)$/i.exec(request.headers.get("authorization") ?? "")?.[1]?.trim() ?? "";
-  if (!isSandboxKey(token)) return agentError(401, "invalid_token", "Send your sandbox key as `Authorization: Bearer rsk_…`.");
-  const keyHash = await sha256Hex(token);
+  const m = /^(Bearer|DPoP)\s+(\S+)$/i.exec((request.headers.get("authorization") ?? "").trim());
+  const scheme = m?.[1]?.toLowerCase();
+  const token = m?.[2] ?? "";
+  if (!isSandboxKey(token)) return agentError(401, "invalid_token", "Send your sandbox key as `Authorization: Bearer rsk_…` (or `DPoP rsk_…` with a DPoP proof).");
+  let keyHash: string;
+  if (scheme === "dpop") {
+    const { sandboxDpop, dpopFailure } = await import("./sandbox-dpop.server");
+    const proof = await sandboxDpop(request, token);
+    if (!proof.ok) return dpopFailure(proof);
+    keyHash = await sha256Hex(boundKeyHashInput(token, proof.jkt));
+  } else {
+    // RFC 9449 §7.2: a proof next to a Bearer key is ambiguous, so it is refused rather than ignored.
+    if (request.headers.get("dpop")) return agentError(400, "invalid_request", "A DPoP proof was sent with a Bearer key. Use `Authorization: DPoP rsk_…` for keys registered with DPoP.");
+    keyHash = await sha256Hex(token);
+  }
   const rows = (await sql`select sandbox_id, agent_name, workspace_id, slug, expires_at, claimed
       from public.rout_agent_sandbox_context(${keyHash})`) as Array<{
     sandbox_id: string; agent_name: string; workspace_id: string | null; slug: string | null; expires_at: string; claimed: boolean | null;
   }>;
   const r = rows[0];
-  if (!r) return agentError(401, "invalid_token", "This sandbox key is invalid, expired or already claimed.");
+  if (!r) return agentError(401, "invalid_token", "This sandbox key is invalid, expired, already claimed, or bound to a DPoP key you did not prove.");
   return { key: token, keyHash, sandboxId: r.sandbox_id, agentName: r.agent_name, workspaceId: r.workspace_id, slug: r.slug, expiresAt: r.expires_at };
 }
 

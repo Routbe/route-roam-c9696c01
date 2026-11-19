@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { WORKSPACE_PERSONAL_ONLY_PREFS } from "@/lib/workspace-studio";
+import { MAX_SANDBOX_APPS } from "./agent-protocol";
 
 /**
  * Pure rules for account-less AI agent sandboxes. Browser-safe: WebCrypto
  * only, no env reads, no I/O.
  *
- * Flow: challenge (signed, 10 min) → proof-of-work → sandbox key (24 h) →
+ * Flow: challenge (pow.ts scope "sandbox", 10 min) → proof-of-work → sandbox
+ * key (SANDBOX_TTL_HOURS, agent-protocol.ts) →
  * one unowned workspace + login-app specs + Studio draft → a human claims it
  * with the link, the QR code (same link) or the typed claim code.
  *
@@ -16,12 +18,9 @@ import { WORKSPACE_PERSONAL_ONLY_PREFS } from "@/lib/workspace-studio";
  *   claim time with the claiming human as owner, so nothing can sign in early.
  */
 
-export const SANDBOX_TTL_HOURS = 24;
+export { SANDBOX_TTL_HOURS, MAX_SANDBOX_APPS } from "./agent-protocol";
 export const SANDBOX_KEY_PREFIX = "rsk_";
 export const SANDBOX_KEY_PATTERN = /^rsk_[0-9a-f]{64}$/;
-export const POW_DIFFICULTY_BITS = 20;
-export const POW_TTL_S = 10 * 60;
-export const MAX_SANDBOX_APPS = 3;
 
 const enc = new TextEncoder();
 
@@ -92,57 +91,6 @@ export function parseClaimInput(raw: string): ClaimInput {
   if (/^[0-9a-f]{64}$/.test(v)) return { kind: "token", token: v };
   const code = normalizeClaimCode(v);
   return code ? { kind: "code", code } : null;
-}
-
-// ---------------------------------------------------------------------------
-// Proof-of-work challenge (stateless, HMAC-signed)
-// ---------------------------------------------------------------------------
-
-const b64url = (bytes: Uint8Array) =>
-  btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-
-async function powKey(secret: string) {
-  return crypto.subtle.importKey("raw", enc.encode(`rout-agent-pow:${secret}`), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-}
-
-export async function signChallenge(secret: string, nowS: number, nonce: Uint8Array, bits = POW_DIFFICULTY_BITS): Promise<string> {
-  const body = `v1.${nowS + POW_TTL_S}.${bits}.${b64url(nonce)}`;
-  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", await powKey(secret), enc.encode(body)));
-  return `${body}.${b64url(sig)}`;
-}
-
-export function leadingZeroBits(hexDigest: string): number {
-  let bits = 0;
-  for (const c of hexDigest) {
-    const n = parseInt(c, 16);
-    if (n === 0) {
-      bits += 4;
-      continue;
-    }
-    return bits + (Math.clz32(n) - 28);
-  }
-  return bits;
-}
-
-export type ChallengeCheck = { ok: true } | { ok: false; reason: "invalid" | "expired" | "weak" };
-
-/** Valid signature, unexpired, and sha256(challenge + ":" + solution) has the demanded zero bits. */
-export async function verifyChallenge(secret: string, challenge: string, solution: string, nowS: number): Promise<ChallengeCheck> {
-  if (challenge.length > 300 || !/^[0-9a-zA-Z]{1,64}$/.test(solution)) return { ok: false, reason: "invalid" };
-  const parts = challenge.split(".");
-  if (parts.length !== 5 || parts[0] !== "v1") return { ok: false, reason: "invalid" };
-  const body = parts.slice(0, 4).join(".");
-  const expected = new Uint8Array(await crypto.subtle.sign("HMAC", await powKey(secret), enc.encode(body)));
-  const given = parts[4]!;
-  const exp = b64url(expected);
-  if (given.length !== exp.length) return { ok: false, reason: "invalid" };
-  let diff = 0;
-  for (let i = 0; i < exp.length; i++) diff |= exp.charCodeAt(i) ^ given.charCodeAt(i);
-  if (diff !== 0) return { ok: false, reason: "invalid" };
-  if (Number(parts[1]) < nowS) return { ok: false, reason: "expired" };
-  const bits = Number(parts[2]);
-  if (leadingZeroBits(await sha256Hex(`${challenge}:${solution}`)) < bits) return { ok: false, reason: "weak" };
-  return { ok: true };
 }
 
 // ---------------------------------------------------------------------------
