@@ -51,7 +51,7 @@ export async function registerSandbox(input: { challenge: string; solution: stri
       ${keyHash}, ${await sha256Hex(input.challenge)}, ${ipBucket}, ${input.agentName})`) as Array<{ sandbox_id: string; expires_at: string }>;
   const row = rows[0];
   if (!row) throw new Error("register_failed");
-  return { sandboxKey: key, sandboxId: row.sandbox_id, expiresAt: row.expires_at, tokenType: input.jkt ? ("DPoP" as const) : ("Bearer" as const) };
+  return { sandboxKey: key, keyHash, sandboxId: row.sandbox_id, expiresAt: row.expires_at, tokenType: input.jkt ? ("DPoP" as const) : ("Bearer" as const) };
 }
 
 export type SandboxContext = {

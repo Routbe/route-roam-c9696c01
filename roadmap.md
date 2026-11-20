@@ -512,3 +512,19 @@
 - [x] Database (rout_app, geen superuser/RLS-omzeiling), aanmeldgeheim, Scaleway (3 buckets) en ROUT_VAULT_KEK ingesteld en gecontroleerd
 - [ ] Inloggen op het voorbeeldadres: bestaande passkeys horen bij rout.be en werken hier niet — eigenaar beslist hoe (bv. een extra passkey voor het voorbeeld)
 - [ ] Overige sleutels per functie (mail, sms, betalingen, wallet, sociale logins) pas opvragen wanneer een functie ze nodig heeft
+
+## Agent-werkruimtes v1 (directief 2026-11-20, schemaniveau 0297)
+- [ ] /api/v1/agent/workspace/create: één POST (rekenbewijs) → zandbak + werkruimte /w/<naam>-<4 Crockford-tekens> + optioneel profiel en inlog-app-specificaties
+- [ ] /api/v1/agent/workspace/{id}/studio (GET/PATCH) en /api/v1/agent/developer/apps (GET/PUT) op dezelfde zandbakmotor
+- [ ] db/0297: achtervoegsel van gratis werkruimtes in Crockford base32 met botsingscontrole (schrijven + testen; Neon pas na GO)
+- [ ] /.well-known/mcp.json, OpenAPI 3.1 met de agent-ingangen (schema's uit de echte invoerregels), llms.txt bijwerken
+- [ ] src/test/autonomous-agent-e2e.test.ts + volledige suite
+- [ ] Antwoord eigenaar: zwaarte rekenpuzzel (nu ~1 s)
+
+## Organisatieverificatie werkruimtes (directief 2026-11-20, schemaniveau 0298)
+- [ ] Entiteitstypes ORGANIZATION / DOMAIN_BRAND / INDIVIDUAL_CREATOR / AUTONOMOUS_AGENT
+- [ ] Domeinbinding via DNS TXT-uitdaging (_rout-challenge.<domein>)
+- [ ] KBO/VIES-btw en LEI (GLEIF)-controle; nummers alleen verzegeld in vault_enclave, publiek enkel nullifier
+- [ ] Volmachtbewijs (EAA) zonder persoonsgegevens van de beheerder op de werkruimte
+- [ ] Rozetten: bedrijf / domein / persoon + popover
+- [ ] db/0298 + src/test/organization-attestation.test.ts
