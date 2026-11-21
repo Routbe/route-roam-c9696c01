@@ -76,9 +76,18 @@ function createdIn(files: string[]): Set<string> {
 const files = listMigrationFiles(DB_DIR);
 const createdUpTo0258 = createdIn(files.filter((f) => migrationNumber(f) <= 258));
 const bornAfter0258 = new Set([...createdIn(files.filter((f) => migrationNumber(f) > 258))].filter((k) => !createdUpTo0258.has(k)));
+/**
+ * Functions that existed as SECURITY INVOKER through 0258 and only became a
+ * definer later (born pinned in that migration, so 0258 never names them).
+ * Each entry names the migration; the test below checks that file really does it.
+ */
+const TURNED_DEFINER_AFTER_0258: Record<string, string> = {
+  "public.enforce_workspace_slug_suffix/0": "0297_workspace_slug_crockford_suffix.sql",
+};
 const definersUpTo0258 = snapshot.functions
   .filter((f) => isSecurityDefinerDef(f.def))
   .filter((f) => !bornAfter0258.has(`${f.schema}.${f.name}/${argCount(f.args)}`))
+  .filter((f) => !(`${f.schema}.${f.name}/${argCount(f.args)}` in TURNED_DEFINER_AFTER_0258))
   .map((f) => ({ key: definerKey(f.schema, f.name, f.args), searchPath: searchPathFromDef(f.def) }));
 
 const BATCH_1 = [
@@ -277,6 +286,18 @@ describe("migration files from 0255 on", () => {
     const keys = statements.map((s) => s.match(/^alter function (.+) set search_path = pg_catalog, pg_temp$/)?.[1]);
     expect(keys.every(Boolean)).toBe(true);
     expect([...keys].sort()).toEqual(definersUpTo0258.map((f) => f.key).sort());
+  });
+
+  it("every function that became a definer after 0258 does so, pinned, in the migration listed for it", () => {
+    for (const [key, file] of Object.entries(TURNED_DEFINER_AFTER_0258)) {
+      const [qualified] = key.split("/");
+      const sql = readFileSync(join(DB_DIR, file), "utf8");
+      const at = sql.search(new RegExp(`create\\s+or\\s+replace\\s+function\\s+${qualified!.replace(".", "\\.")}\\s*\\(`, "i"));
+      expect(at, key).toBeGreaterThanOrEqual(0);
+      const head = sql.slice(at, sql.indexOf("$$", at));
+      expect(head, key).toMatch(/security definer set search_path = pg_catalog, pg_temp/);
+      expect(createdUpTo0258.has(key), key).toBe(true);
+    }
   });
 
   it("0255 only changes search_path settings and one PUBLIC grant", () => {
