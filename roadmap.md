@@ -516,7 +516,7 @@
 ## Agent-werkruimtes v1 (directief 2026-11-20, schemaniveau 0297)
 - [ ] /api/v1/agent/workspace/create: één POST (rekenbewijs) → zandbak + werkruimte /w/<naam>-<4 Crockford-tekens> + optioneel profiel en inlog-app-specificaties
 - [ ] /api/v1/agent/workspace/{id}/studio (GET/PATCH) en /api/v1/agent/developer/apps (GET/PUT) op dezelfde zandbakmotor
-- [ ] db/0297: achtervoegsel van gratis werkruimtes in Crockford base32 met botsingscontrole (schrijven + testen; Neon pas na GO)
+- [x] db/0297: achtervoegsel van gratis werkruimtes in Crockford base32 met botsingscontrole (live op Neon 2026-11-21 09:08 UTC, GO eigenaar, checksum cc43af53…8b74)
 - [ ] /.well-known/mcp.json, OpenAPI 3.1 met de agent-ingangen (schema's uit de echte invoerregels), llms.txt bijwerken
 - [ ] src/test/autonomous-agent-e2e.test.ts + volledige suite
 - [ ] Antwoord eigenaar: zwaarte rekenpuzzel (nu ~1 s)
@@ -528,3 +528,9 @@
 - [ ] Volmachtbewijs (EAA) zonder persoonsgegevens van de beheerder op de werkruimte
 - [ ] Rozetten: bedrijf / domein / persoon + popover
 - [ ] db/0298 + src/test/organization-attestation.test.ts
+
+## Naam bij blauw vinkje (besluit eigenaar 2026-11-21)
+- [ ] Gebruikersnaam (hoofdprofiel) pas kiezen na verificatie; afgeleid van de geverifieerde naam
+- [ ] Bij verificatie (Didit of team) met niet-passende hoofdnaam: automatisch hernoemen naar de eerste vrije toegestane variant
+- [ ] Privé-aliassen vrij; door het team goedgekeurde aliassen blijven bruikbaar tot het team ze intrekt
+- [ ] Door het team ingestelde voornaam/achternaam/bedrijfsnaam is wat de popover bij het blauwe vinkje toont
